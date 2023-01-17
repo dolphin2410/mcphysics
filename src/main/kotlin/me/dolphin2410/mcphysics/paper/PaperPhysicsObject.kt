@@ -9,6 +9,7 @@ import org.bukkit.FluidCollisionMode
 import org.bukkit.entity.Entity
 import org.bukkit.util.Vector
 
+fun FakeEntity<out Entity>.toPhysicsObject(runtime: PaperPhysics) = PaperPhysicsObject(runtime, this)
 class PaperPhysicsObject(
     runtime: PaperPhysics,
     val entity: FakeEntity<out Entity>
