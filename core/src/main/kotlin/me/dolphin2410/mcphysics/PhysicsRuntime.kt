@@ -1,6 +1,6 @@
 package me.dolphin2410.mcphysics
 
-abstract class McPhysics(val ticksPerSecond: Int) {
+abstract class PhysicsRuntime(val ticksPerSecond: Int) {
     private val objects = ArrayList<PhysicsObject>()
 
     fun addObject(obj: PhysicsObject) {

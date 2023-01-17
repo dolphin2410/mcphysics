@@ -1,17 +1,16 @@
-package me.dolphin2410.mcphysics.paper
+package me.dolphin2410.mcphysics.tap
 
 import io.github.monun.tap.fake.FakeEntity
-import me.dolphin2410.mcphysics.Maths.toBukkit
-import me.dolphin2410.mcphysics.Maths.toPhysics
+import me.dolphin2410.mcphysics.tap.ConversionUtil.toBukkit
+import me.dolphin2410.mcphysics.tap.ConversionUtil.toPhysics
 import me.dolphin2410.mcphysics.PhysicsObject
 import me.dolphin2410.mcphysics.PhysicsVector
 import org.bukkit.FluidCollisionMode
 import org.bukkit.entity.Entity
 import org.bukkit.util.Vector
 
-fun FakeEntity<out Entity>.toPhysicsObject(runtime: PaperPhysics) = PaperPhysicsObject(runtime, this)
-class PaperPhysicsObject(
-    runtime: PaperPhysics,
+class TapPhysicsObject(
+    runtime: TapPhysicsRuntime,
     val entity: FakeEntity<out Entity>
 ) : PhysicsObject(runtime) {
     override val mass: Double = 1.0

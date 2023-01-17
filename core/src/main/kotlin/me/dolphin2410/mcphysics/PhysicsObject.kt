@@ -2,7 +2,7 @@ package me.dolphin2410.mcphysics
 
 import kotlin.math.*
 
-abstract class PhysicsObject(private val runtime: McPhysics) {
+abstract class PhysicsObject(private val runtime: PhysicsRuntime) {
     var isOnGround: Boolean
         get() = flyTicks == 0
         set(value) {
@@ -20,7 +20,7 @@ abstract class PhysicsObject(private val runtime: McPhysics) {
     private val relCenter = PhysicsVector(0, 0, 0)
     private val relPos = PhysicsVector(0, 0, 0)
 
-    // Set by applying force
+    // 속도 설정
     private val velocity = PhysicsVector(0, 0, 0)
 
     abstract val mass: Double
