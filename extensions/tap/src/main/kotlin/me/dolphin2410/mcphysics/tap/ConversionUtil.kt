@@ -6,10 +6,13 @@ import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.entity.Entity
 
+/**
+ * Bukkit <-> McPhysics
+ */
 object ConversionUtil {
     fun Location.toPhysics() = PhysicsVector(x, y, z)
 
     fun PhysicsVector.toBukkit(world: World) = Location(world, x, y, z)
 
-    fun FakeEntity<out Entity>.toPhysicsObject(runtime: TapPhysicsRuntime) = PaperPhysicsObject(runtime, this)
+    fun FakeEntity<out Entity>.toPhysicsObject(runtime: TapPhysicsRuntime) = TapPhysicsObject(runtime, this)
 }

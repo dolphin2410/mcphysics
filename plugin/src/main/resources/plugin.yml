@@ -2,7 +2,9 @@ name: McPhysics
 version: 1.0.0
 api-version: 1.19
 author: dolphin2410
-main: me.dolphin2410.mcphysics.TestPlugin
+main: me.dolphin2410.mcphysics.plugin.DebugPlugin
 libraries:
   - io.github.monun:kommand-core:3.0.0
   - io.github.monun:tap-core:4.8.0
+  - io.github.dolphin2410:mcphysics-core:0.1.1
+  - io.github.dolphin2410:mcphysics-tap:0.1.1

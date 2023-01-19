@@ -1,5 +1,8 @@
 package me.dolphin2410.mcphysics
 
+/**
+ * McPhysics 시공간 단위
+ */
 abstract class PhysicsRuntime(val ticksPerSecond: Int) {
     private val objects = ArrayList<PhysicsObject>()
 

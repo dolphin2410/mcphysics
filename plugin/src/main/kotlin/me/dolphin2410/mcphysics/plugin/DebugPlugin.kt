@@ -33,9 +33,9 @@ class DebugPlugin: JavaPlugin(), Listener {
                     val entity = fakeServer.spawnEntity(player.location, ArmorStand::class.java)
                     val obj = entity.toPhysicsObject(runtime)
                     runtime.addObject(obj)
-                    obj.circle(player.location.toPhysics() + PhysicsVector(3, 3, 3), 5.0)
-                    obj.addForce(PhysicsVector(1,0, 0))
-                    // obj.project(PhysicsVector(0, 5, 0))
+                    // obj.circle(player.location.toPhysics() + PhysicsVector(3, 3, 3), 5.0)
+                    // obj.addForce(PhysicsVector(1, 0, 0))
+                    // obj.applyVelocity(PhysicsVector(0, 5, 0))
                 }
             }
         }

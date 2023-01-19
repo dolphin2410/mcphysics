@@ -9,3 +9,9 @@ dependencies {
     compileOnly(project(":extensions:tap"))
     compileOnly(project(":core"))
 }
+
+tasks {
+    jar {
+        archiveFileName.set("mcphysics.jar")
+    }
+}

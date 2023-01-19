@@ -6,25 +6,48 @@
 - [x] 등속 원운동
 - [ ] 나머지
 
+### 사용법
+
+#### build.gradle.kts 
+```kotlin
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly("io.github.dolphin2410:mcphysics-core:<version>")
+    compileOnly("io.github.dolphin2410:mcphysics-tap:<version>") // Tap 사용시
+}
+```
+
+#### plugin.yml
+```yaml
+libraries:
+  - io.github.dolphin2410:mcphysics-core:<version>
+  - io.github.dolphin2410:mcphysics-tap:<version> # Tap 사용시
+```
+
 ### 예제
-Tap의 FakeEntity는 물리가 따로 없어 중력이 작용하지 않습니다. McPhysics를 이용해 가능하게 만들어봅시다.
+Tap의 FakeEntity는 중력과 같은 기본 적인 힘이 작용하지 않습니다. McPhysics를 이용해 가능하게 만들어봅시다. 
 
 ```kotlin
+// mcphysics-tap이 필요합니다
+
 class YourPlugin: JavaPlugin(), Listener {
     lateinit var fakeServer: FakeEntityServer
 
     override fun onEnable() {
-        val runtime = PaperPhysics()
+        val runtime = TapPhysicsRuntime()
         fakeServer = FakeEntityServer.create(this)
         server.scheduler.runTaskTimer(this, fakeServer::update, 0, 1)
         server.scheduler.runTaskTimer(this, runtime::update, 0, 1)
         server.pluginManager.registerEvents(this, this)
 
         kommand {
-            register("summon") {
+            register("createObject") {
                 executes {
                     val entity = fakeServer.spawnEntity(player.location, ArmorStand::class.java)
-                    val obj = PaperPhysicsObject(runtime, entity)
+                    val obj = entity.toPhysicsObject(runtime)
                     runtime.addObject(obj)
                     
                     // +y 방향으로 5m/s 등속운동
@@ -53,3 +76,10 @@ class YourPlugin: JavaPlugin(), Listener {
     }
 }
 ```
+
+
+### 참고 코드
+
+- [monun/paper-sample-complex](https://github.com/monun/paper-sample-complex)의 publish 기능
+
+### Licensed Under GPL-v3.0
