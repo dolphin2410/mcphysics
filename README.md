@@ -1,10 +1,13 @@
-# McPhysics(WIP)
+# McPhysics
 물리가 없는 가상엔티티를 위한 물리엔진
 
 - [x] 등가속도 운동(F=ma)
 - [x] 등속 운동
 - [x] 등속 원운동
 - [ ] 나머지
+
+### Notice
+Currently in Beta. It is ***Experimental And Unstable***
 
 ### 사용법
 

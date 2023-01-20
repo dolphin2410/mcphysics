@@ -21,8 +21,8 @@ class TapPhysicsObject(
         initCenter()
     }
 
-    override fun getFloorPos(): PhysicsVector {
-        val res = entity.bukkitEntity.world.rayTraceBlocks(entity.bukkitEntity.location.clone(), Vector(0, -1, 0), 10.0, FluidCollisionMode.NEVER, true)
+    override fun getFloorPos(applyDistance: Double): PhysicsVector {
+        val res = entity.bukkitEntity.world.rayTraceBlocks(entity.bukkitEntity.location.clone(), Vector(0, -1, 0), applyDistance, FluidCollisionMode.NEVER, true)
         return res?.hitBlock?.location?.toPhysics() ?: (entity.bukkitEntity.location.toPhysics().apply { y = -64.0 })
     }
 

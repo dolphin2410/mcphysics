@@ -6,26 +6,25 @@ import kotlin.math.*
  * McPhysics의 엔티티 단위
  */
 abstract class PhysicsObject(private val runtime: PhysicsRuntime) {
+
+    // 가한 힘
+    private val force = ArrayList<Force>()
+
+    var gravity: Force
+
+    init {
+        gravity = addForce(PhysicsVector(0.0, -9.8, 0.0))
+    }
+
     protected fun initCenter() {
         physicsCenter.set(position.clone())
     }
 
-    var isOnGround: Boolean
-        get() = flyTicks == 0
-        set(value) {
-            if (value) {
-                flyTicks = 0
-            }
-        }
-    
     // 위치
     abstract var position: PhysicsVector
     
     // 비행 시간
-    private var flyTicks = 0
-    
-    // 가한 힘
-    private val force = PhysicsVector(0, 0, 0)
+    internal var flyTicks = 0
 
     // 작용점
     private val physicsCenter = PhysicsVector(0, 0, 0)
@@ -41,7 +40,7 @@ abstract class PhysicsObject(private val runtime: PhysicsRuntime) {
 
     private val updates = ArrayList<ActionHandle>()
 
-    abstract fun getFloorPos(): PhysicsVector
+    abstract fun getFloorPos(applyDistance: Double): PhysicsVector
 
     /**
      * 매 틱마다 실행, 개체의 물리량을 변경
@@ -53,21 +52,28 @@ abstract class PhysicsObject(private val runtime: PhysicsRuntime) {
         }
 
         val deltaSeconds = 1.0 / runtime.ticksPerSecond
-        val flySeconds = flyTicks / runtime.ticksPerSecond
 
-        val acceleration = force / mass // F = ma -> a = F / m
-        acceleration -= PhysicsVector(0.0, 9.8, 0.0)   // Gravity
+        // val acceleration = force / mass // F = ma -> a = F / m
+        // acceleration -= PhysicsVector(0.0, 9.8, 0.0)   // Gravity
 
         // s = v0 * t + 1/2 a * t^2
-        physicsCenter += velocity * deltaSeconds + acceleration * (deltaSeconds * ( deltaSeconds + 2 * flySeconds )) / 2.0
+        physicsCenter += velocity * deltaSeconds + calcForce()
 
         // 엔티티 이동 전 계산값
         val pre = physicsCenter + relPos
 
-        // 지면과 충돌했는가?
-        if (pre.y < getFloorPos().y + 1) {
-            pre.y = getFloorPos().y + 1
-            isOnGround = true
+        if (pre.y <= position.y) {
+            val floorPos = getFloorPos(position.y - pre.y + 1)
+
+            // 지면과 충돌했는가?
+            if (pre.y < floorPos.y + 1) {
+                pre.y = floorPos.y + 1
+            }
+
+            if (pre.y == floorPos.y + 1) {
+                gravity.startTick = flyTicks
+            }
+
         }
 
         position = pre
@@ -84,7 +90,7 @@ abstract class PhysicsObject(private val runtime: PhysicsRuntime) {
 
         // y축 평형 (정지)
         val mg = PhysicsVector(0.0, 9.8, 0.0) * mass
-        force += mg
+        addForce(gravity.child(this, mg))
         
         // 중심과 위치
         val distance = center - position
@@ -140,7 +146,29 @@ abstract class PhysicsObject(private val runtime: PhysicsRuntime) {
      * 
      * 등가속 운동
      */
-    fun addForce(force: PhysicsVector) {
-        this.force += force
+    fun addForce(force: PhysicsVector): Force {
+        val f = Force(flyTicks, force)
+        this.force.add(f)
+        return f
+    }
+
+    fun addForce(force: Force): Force {
+        this.force.add(force)
+        return force
+    }
+
+    fun calcForce(): PhysicsVector {
+        val res = PhysicsVector.ZERO
+
+        for (force in this.force) {
+            val elapsed = (flyTicks - force.startTick).toDouble()
+            val appliedSec = (elapsed) / runtime.ticksPerSecond
+            val prevSec = (elapsed - 1) / runtime.ticksPerSecond
+
+            val delta = force.v * (appliedSec.pow(2) - prevSec.pow(2)) * 0.5
+            res += delta
+        }
+
+        return res
     }
 }

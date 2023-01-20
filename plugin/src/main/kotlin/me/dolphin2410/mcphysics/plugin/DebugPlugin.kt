@@ -12,6 +12,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.scheduler.BukkitRunnable
 
 class DebugPlugin: JavaPlugin(), Listener {
     lateinit var fakeServer: FakeEntityServer
@@ -33,7 +34,11 @@ class DebugPlugin: JavaPlugin(), Listener {
                     val entity = fakeServer.spawnEntity(player.location, ArmorStand::class.java)
                     val obj = entity.toPhysicsObject(runtime)
                     runtime.addObject(obj)
-                    // obj.circle(player.location.toPhysics() + PhysicsVector(3, 3, 3), 5.0)
+                    object: BukkitRunnable() {
+                        override fun run() {
+                            obj.circle(player.location.toPhysics() + PhysicsVector(3, 3, 3), 5.0)
+                        }
+                    }.runTaskLater(this@DebugPlugin, 20)
                     // obj.addForce(PhysicsVector(1, 0, 0))
                     // obj.applyVelocity(PhysicsVector(0, 5, 0))
                 }
