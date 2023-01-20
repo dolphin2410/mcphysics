@@ -58,7 +58,7 @@ class YourPlugin: JavaPlugin(), Listener {
                     
                     // 플레이어 좌표 + (3, 3, 3) 을 중심으로 반지름이 5m인 등속 원운동
                     // m * r * w^2 = m * g * tan(theta)
-                    // y축 정지, xz평면 위를 등속 운동
+                    // y축 평형(등속운동), xz평면 위를 등속 운동
                     obj.circle(player.location.toPhysics() + PhysicsVector(3, 3, 3), 5.0)
                     
                     // 힘 작용
