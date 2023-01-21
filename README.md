@@ -50,8 +50,7 @@ class YourPlugin: JavaPlugin(), Listener {
             register("createObject") {
                 executes {
                     val entity = fakeServer.spawnEntity(player.location, ArmorStand::class.java)
-                    val obj = entity.toPhysicsObject(runtime)
-                    runtime.addObject(obj)
+                    val obj = runtime.addObject(entity)
                     
                     // +y 방향으로 5m/s 등속운동
                     obj.project(PhysicsVector(0, 5, 0))

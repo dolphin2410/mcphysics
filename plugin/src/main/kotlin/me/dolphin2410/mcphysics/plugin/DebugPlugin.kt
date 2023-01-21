@@ -32,8 +32,7 @@ class DebugPlugin: JavaPlugin(), Listener {
             register("testme") {
                 executes {
                     val entity = fakeServer.spawnEntity(player.location, ArmorStand::class.java)
-                    val obj = entity.toPhysicsObject(runtime)
-                    runtime.addObject(obj)
+                    val obj = runtime.addObject(entity)
                     object: BukkitRunnable() {
                         override fun run() {
                             obj.circle(player.location.toPhysics() + PhysicsVector(3, 3, 3), 5.0)

@@ -40,6 +40,8 @@ abstract class PhysicsObject(private val runtime: PhysicsRuntime) {
 
     private val updates = ArrayList<ActionHandle>()
 
+    abstract val valid: Boolean
+
     abstract fun getFloorPos(applyDistance: Double): PhysicsVector
 
     /**
