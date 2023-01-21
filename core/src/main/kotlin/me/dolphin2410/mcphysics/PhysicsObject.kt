@@ -47,8 +47,14 @@ abstract class PhysicsObject(private val runtime: PhysicsRuntime) {
      */
     fun update() {
         flyTicks++
-        for (update in updates) {
-            update.task()
+
+        val iter = updates.iterator()
+        while (iter.hasNext()) {
+            val handle = iter.next()
+            handle.task(handle)
+            if (!handle.valid) {
+                iter.remove()
+            }
         }
 
         val deltaSeconds = 1.0 / runtime.ticksPerSecond
@@ -113,7 +119,7 @@ abstract class PhysicsObject(private val runtime: PhysicsRuntime) {
     /**
      * update() 단계에서 실행되는 task 등록
      */
-    fun registerAction(action: () -> Unit): ActionHandle {
+    fun registerAction(action: (ActionHandle) -> Unit): ActionHandle {
         val identical = updates.find { it.task == action }
         if (identical != null) {
             return identical

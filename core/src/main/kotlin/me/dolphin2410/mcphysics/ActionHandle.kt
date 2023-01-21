@@ -1,3 +1,8 @@
 package me.dolphin2410.mcphysics
 
-data class ActionHandle(internal val task: () -> Unit)
+data class ActionHandle(internal val task: (ActionHandle) -> Unit) {
+    internal var valid = true
+    fun cancel() {
+        valid = false
+    }
+}
