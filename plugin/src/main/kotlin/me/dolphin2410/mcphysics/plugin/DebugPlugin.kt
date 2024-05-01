@@ -7,6 +7,7 @@ import me.dolphin2410.mcphysics.tap.ConversionUtil.toPhysics
 import me.dolphin2410.mcphysics.tap.ConversionUtil.toPhysicsObject
 import me.dolphin2410.mcphysics.tap.TapPhysicsRuntime
 import org.bukkit.entity.ArmorStand
+import org.bukkit.entity.Entity
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
@@ -35,9 +36,15 @@ class DebugPlugin: JavaPlugin(), Listener {
                     val obj = runtime.addObject(entity)
                     object: BukkitRunnable() {
                         override fun run() {
-                            obj.circle(player.location.toPhysics() + PhysicsVector(3, 3, 3), 5.0)
+                            obj.circle(3.0, Math.PI / 4)
                         }
                     }.runTaskLater(this@DebugPlugin, 20)
+
+                    object: BukkitRunnable() {
+                        override fun run() {
+                            println(obj.position)
+                        }
+                    }.runTaskTimer(this@DebugPlugin, 0, 2)
                     // obj.addForce(PhysicsVector(1, 0, 0))
                     // obj.applyVelocity(PhysicsVector(0, 5, 0))
                 }

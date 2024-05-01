@@ -1,12 +1,12 @@
 plugins {
-    kotlin("jvm") version "1.7.10"
-    id("org.jetbrains.dokka") version "1.7.10" apply false
+    kotlin("jvm") version "1.9.23"
+    id("org.jetbrains.dokka") version "1.9.20" apply false
     `maven-publish`
     signing
 }
 
 group = "io.github.dolphin2410"
-version = "0.1.1"
+version = "0.2.0"
 
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
@@ -145,7 +145,7 @@ publishing {
     }
 }
 
-signing {
-    isRequired = true
-    sign(publishing.publications["core"], publishing.publications["tap_extension"])
-}
+//signing {
+//    isRequired = true
+//    sign(publishing.publications["core"], publishing.publications["tap_extension"])
+//}

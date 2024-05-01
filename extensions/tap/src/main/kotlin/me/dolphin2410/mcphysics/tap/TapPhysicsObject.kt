@@ -17,10 +17,6 @@ class TapPhysicsObject(
 ) : PhysicsObject(runtime) {
     override val mass: Double = 1.0
 
-    init {
-        initCenter()
-    }
-
     override val valid: Boolean
         get() = entity.valid
 

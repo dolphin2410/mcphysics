@@ -1,44 +1,31 @@
 package me.dolphin2410.mcphysics
 
+import java.util.LinkedList
 import kotlin.math.*
 
 /**
  * McPhysics의 엔티티 단위
  */
 abstract class PhysicsObject(private val runtime: PhysicsRuntime) {
+    private val motionFactors = ArrayList<MotionFactor>()
 
-    // 가한 힘
-    private val force = ArrayList<Force>()
+    // gravity value for the object
+    private val gravity = NewtonForce(PhysicsVector(0.0, -9.8, 0.0))
 
-    var gravity: Force
+    // extra movement evaluated by updates
+    private val extraMovement = PhysicsVector(0.0, 0.0, 0.0)
 
-    init {
-        gravity = addForce(PhysicsVector(0.0, -9.8, 0.0))
-    }
-
-    protected fun initCenter() {
-        physicsCenter.set(position.clone())
-    }
-
-    // 위치
-    abstract var position: PhysicsVector
-    
-    // 비행 시간
-    internal var flyTicks = 0
-
-    // 작용점
-    private val physicsCenter = PhysicsVector(0, 0, 0)
-    
-    // 작용점 대비 상대적 위치
-    private val relPos = PhysicsVector(0, 0, 0)
+    // updates
+    private val tasksQueue = LinkedList<ActionHandle>()
 
     // 속도 설정
-    private val velocity = PhysicsVector(0, 0, 0)
+    private val velocity = ProtectedPhysicsVector(PhysicsVector(0, 0, 0))
+
+    // position
+    abstract var position: PhysicsVector
     
     // 질량
     abstract val mass: Double
-
-    private val updates = ArrayList<ActionHandle>()
 
     abstract val valid: Boolean
 
@@ -48,73 +35,48 @@ abstract class PhysicsObject(private val runtime: PhysicsRuntime) {
      * 매 틱마다 실행, 개체의 물리량을 변경
      */
     fun update() {
-        flyTicks++
-
-        val iter = updates.iterator()
-        while (iter.hasNext()) {
-            val handle = iter.next()
-            handle.task(handle)
-            if (!handle.valid) {
-                iter.remove()
-            }
+        while (tasksQueue.isNotEmpty()) {
+            tasksQueue.poll()
         }
 
-        val deltaSeconds = 1.0 / runtime.ticksPerSecond
+        // pre-calculated version of the new position
+        val temporaryPosition = position + extraMovement + motionByForce()
 
-        // val acceleration = force / mass // F = ma -> a = F / m
-        // acceleration -= PhysicsVector(0.0, 9.8, 0.0)   // Gravity
-
-        // s = v0 * t + 1/2 a * t^2
-        physicsCenter += velocity * deltaSeconds + calcForce()
-
-        // 엔티티 이동 전 계산값
-        val pre = physicsCenter + relPos
-
-        if (pre.y <= position.y) {
-            val floorPos = getFloorPos(position.y - pre.y + 1)
+        if (temporaryPosition.y <= position.y) {
+            val floorPos = getFloorPos(position.y - temporaryPosition.y + 1)
 
             // 지면과 충돌했는가?
-            if (pre.y < floorPos.y + 1) {
-                pre.y = floorPos.y + 1
+            if (temporaryPosition.y < floorPos.y + 1) {
+                temporaryPosition.y = floorPos.y + 1
+                gravity.invalidate()
+            } else {
+                gravity.revalidate()
             }
-
-            if (pre.y == floorPos.y + 1) {
-                gravity.startTick = flyTicks
-            }
-
         }
 
-        position = pre
+        extraMovement.setZero()
 
-        relPos.set(PhysicsVector.ZERO)
+        position = temporaryPosition
     }
 
     /**
      * 등속원운동
-     *
-     * y축 평형, 주어진 반지름 값을 갖도록 가상의 장력 설정
      */
-    fun circle(center: PhysicsVector, radius: Double): ActionHandle {
+    fun circle(radius: Double, angularVelocity: Double): ActionHandle {
+        val originTime = System.currentTimeMillis()
 
-        // y축 평형 (정지)
-        val mg = PhysicsVector(0.0, 9.8, 0.0) * mass
-        addForce(gravity.child(this, mg))
-        
-        // 중심과 위치
-        val distance = center - position
-        
-        // 중력 벡터와 장력 벡터가 이루는 각
-        val theta = asin(radius / distance.length)
-
-        // 각속도
-        val w = sqrt(9.8 / (distance.length * cos(theta)))
-
-        physicsCenter.set(center - PhysicsVector(0.0, distance.length * cos(theta), 0.0))
+        var priorTime = originTime
 
         return registerAction {
-            val flySeconds = flyTicks.toDouble() / runtime.ticksPerSecond
+            val newTime = System.currentTimeMillis()
 
-            relPos += PhysicsVector(radius * cos(w * flySeconds), 0.0, radius * sin(w * flySeconds))
+            val priorTheta = angularVelocity * (priorTime - originTime) * 0.001
+            val newTheta = angularVelocity * (newTime - originTime) * 0.001
+
+            // TODO: allow explicit setting of plane
+            extraMovement += PhysicsVector(radius * (cos(newTheta) - cos(priorTheta)), 0.0, radius * (sin(newTheta) - sin(priorTheta)))
+
+            priorTime = newTime
         }
     }
 
@@ -122,13 +84,13 @@ abstract class PhysicsObject(private val runtime: PhysicsRuntime) {
      * update() 단계에서 실행되는 task 등록
      */
     fun registerAction(action: (ActionHandle) -> Unit): ActionHandle {
-        val identical = updates.find { it.task == action }
+        val identical = tasksQueue.find { it.task == action }
         if (identical != null) {
             return identical
         }
 
         val handle = ActionHandle(action)
-        updates.add(handle)
+        tasksQueue.add(handle)
         return handle
     }
 
@@ -136,45 +98,29 @@ abstract class PhysicsObject(private val runtime: PhysicsRuntime) {
      * 등록한 task 제거
      */
     fun unregisterAction(handle: ActionHandle): Boolean {
-        initCenter()
-        return updates.remove(handle)
+        return tasksQueue.remove(handle)
     }
 
     /**
-     * 단위: m/s (블록/s)
-     * 
-     * 등속 운동
+     * 순간적인 속도 변화
      */
-    fun applyVelocity(velocity: PhysicsVector) {
-        this.velocity += velocity
+    fun addInstantVelocity(velocity: InstantVelocity): Boolean {
+        return this.motionFactors.add(velocity)
     }
 
     /**
-     * 단위: N `[뉴턴]`
-     * 
-     * 등가속 운동
+     * 뉴턴 힘 가하기
      */
-    fun addForce(force: PhysicsVector): Force {
-        val f = Force(flyTicks, force)
-        this.force.add(f)
-        return f
+    fun addNewtonForce(force: NewtonForce): Boolean {
+        return this.motionFactors.add(force)
     }
 
-    fun addForce(force: Force): Force {
-        this.force.add(force)
-        return force
-    }
-
-    fun calcForce(): PhysicsVector {
+    private fun motionByForce(): PhysicsVector {
         val res = PhysicsVector.ZERO
 
-        for (force in this.force) {
-            val elapsed = (flyTicks - force.startTick).toDouble()
-            val appliedSec = (elapsed) / runtime.ticksPerSecond
-            val prevSec = (elapsed - 1) / runtime.ticksPerSecond
-
-            val delta = force.v * (appliedSec.pow(2) - prevSec.pow(2)) * 0.5
-            res += delta
+        for (motionFactor in this.motionFactors) {
+            velocity.setValue(velocity.getValue() + motionFactor.deltaVelocity(mass))
+            res += motionFactor.deltaPosition(mass)
         }
 
         return res

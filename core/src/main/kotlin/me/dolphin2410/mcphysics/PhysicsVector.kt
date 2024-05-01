@@ -11,6 +11,15 @@ data class PhysicsVector(var x: Double, var y: Double, var z: Double) {
         @JvmStatic
         val ZERO: PhysicsVector
             get() = PhysicsVector(0, 0, 0)
+
+        @JvmStatic
+        fun clone(v: PhysicsVector): PhysicsVector {
+            return PhysicsVector(
+                v.x,
+                v.y,
+                v.z
+            )
+        }
     }
 
     constructor(x: Int, y: Int, z: Int): this(x.toDouble(), y.toDouble(), z.toDouble())
@@ -82,5 +91,11 @@ data class PhysicsVector(var x: Double, var y: Double, var z: Double) {
         this.x *= newLength / l
         this.y *= newLength / l
         this.z *= newLength / l
+    }
+
+    fun setZero() {
+        this.x = 0.0
+        this.y = 0.0
+        this.z = 0.0
     }
 }
